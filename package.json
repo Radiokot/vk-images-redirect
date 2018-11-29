@@ -1,0 +1,11 @@
+{
+  "name": "vk-image-redirect",
+  "version": "0.0.1",
+  "description": "Redirects request to VK or to proxy based on IP of the requester",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Radiokot",
+  "license": "ISC"
+}
