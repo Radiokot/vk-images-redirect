@@ -1,7 +1,9 @@
+const path = require('path')
+
 const PORT = parseInt(process.env.PORT || 8031)
 const ROUTE = '/r'
 const DEFAULT_COUNTRY = 'US'
-const GEOIP_PATH = 'GeoLite2-Country.mmdb'
+const GEOIP_PATH = path.join(__dirname, 'GeoLite2-Country.mmdb')
 
 const DEFAULT_REDIRECT = 'https://pp.userapi.com'
 const REDIRECTS = {
