@@ -4,8 +4,9 @@ const PORT = parseInt(process.env.PORT || 8031)
 const ROUTE = '/r'
 const DEFAULT_COUNTRY = 'US'
 const GEOIP_PATH = path.join(__dirname, 'GeoLite2-Country.mmdb')
+const UA_REDIRECT_UPDATE_INTERVAL_MS = 8 * 3600 * 1000
 
-const DEFAULT_REDIRECT = 'https://pp.userapi.com'
+const PP_USERAPI = 'https://pp.userapi.com'
 const REDIRECTS = {
     'UA': 'http://cs.cmle.ru/pp'
 }
@@ -43,7 +44,7 @@ const handler = (request, response) => {
 
         let redirect = REDIRECTS[country]
         if (!redirect) {
-            redirect = DEFAULT_REDIRECT
+            redirect = PP_USERAPI
         }
 
         response.writeHead(301, {
@@ -68,3 +69,47 @@ server.listen(PORT, (err) => {
     }
     console.log(`Server is listening on ${PORT}`)
 })
+
+// Schedule UA redirect URL update
+const updateUaRedirect = () => {
+	let data = 'url=' + encodeURIComponent(PP_USERAPI)
+	let options = {
+		hostname: 'cameleo.xyz',
+		path: '/r',
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Length': data.length
+		},
+		timeout: 10000
+	}
+	
+	let request = http.request(options, (error, response) => {
+		if (error == null) {
+			console.error(`UA redirect update failed: 302 error expected`)
+			return
+		}
+		if (error.statusCode != 302) {
+			console.error(`UA redirect update failed: invalid code ${error.statusCode}`)
+			return
+		}
+		let headers = error.headers
+		let location = headers ? headers.location : undefined
+		if (!location) {
+			console.error(`UA redirect update failed: expected location header`)
+			return
+		}
+		REDIRECTS['UA'] = location
+	})
+
+	request.on('error', (error) => {
+		console.error(`UA redirect update failed: ${error.message}`);
+	});
+
+	request.write(data)
+	request.end()
+}
+
+updateUaRedirect()
+console.log(`Scheduling UA redirect URL update at ${UA_REDIRECT_UPDATE_INTERVAL_MS} rate`)
+setInterval(updateUaRedirect, UA_REDIRECT_UPDATE_INTERVAL_MS)
